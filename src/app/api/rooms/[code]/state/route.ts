@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { resolvePlayerId } from "@/lib/resolvePlayer";
+import { jsonNoStore } from "@/lib/apiResponse";
 import type { MeInfo } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
 /**
@@ -29,10 +31,10 @@ export async function GET(
       .maybeSingle();
 
     if (roomError) {
-      return NextResponse.json({ error: roomError.message }, { status: 500 });
+      return jsonNoStore({ error: roomError.message }, 500);
     }
     if (!room) {
-      return NextResponse.json({ error: "Комната не найдена" }, { status: 404 });
+      return jsonNoStore({ error: "Комната не найдена" }, 404);
     }
 
     const { data: players, error: playersError } = await supabase
@@ -42,7 +44,7 @@ export async function GET(
       .order("created_at", { ascending: true });
 
     if (playersError) {
-      return NextResponse.json({ error: playersError.message }, { status: 500 });
+      return jsonNoStore({ error: playersError.message }, 500);
     }
 
     let me: MeInfo | null = null;
@@ -57,7 +59,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({
+    return jsonNoStore({
       room: {
         id: room.id,
         code: room.code,
@@ -70,6 +72,6 @@ export async function GET(
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Неизвестная ошибка";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonNoStore({ error: message }, 500);
   }
 }

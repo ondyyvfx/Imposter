@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { resolvePlayerId } from "@/lib/resolvePlayer";
+import { jsonNoStore } from "@/lib/apiResponse";
 import type { CardResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
 /**
@@ -24,7 +26,7 @@ export async function GET(
     const clientId = String(searchParams.get("clientId") ?? "").trim();
 
     if (!clientId) {
-      return NextResponse.json({ error: "Нет clientId" }, { status: 400 });
+      return jsonNoStore({ error: "Нет clientId" }, 400);
     }
 
     const supabase = getServiceClient();
@@ -36,13 +38,13 @@ export async function GET(
       .maybeSingle();
 
     if (roomError) {
-      return NextResponse.json({ error: roomError.message }, { status: 500 });
+      return jsonNoStore({ error: roomError.message }, 500);
     }
     if (!room) {
-      return NextResponse.json({ error: "Комната не найдена" }, { status: 404 });
+      return jsonNoStore({ error: "Комната не найдена" }, 404);
     }
     if (room.status === "lobby" || room.round_number === 0) {
-      return NextResponse.json({ error: "Раунд ещё не начался" }, { status: 409 });
+      return jsonNoStore({ error: "Раунд ещё не начался" }, 409);
     }
 
     const { data: round, error: roundError } = await supabase
@@ -53,10 +55,10 @@ export async function GET(
       .maybeSingle();
 
     if (roundError) {
-      return NextResponse.json({ error: roundError.message }, { status: 500 });
+      return jsonNoStore({ error: roundError.message }, 500);
     }
     if (!round) {
-      return NextResponse.json({ error: "Раунд не найден" }, { status: 404 });
+      return jsonNoStore({ error: "Раунд не найден" }, 404);
     }
 
     const { data: word, error: wordError } = await supabase
@@ -66,10 +68,10 @@ export async function GET(
       .maybeSingle();
 
     if (wordError) {
-      return NextResponse.json({ error: wordError.message }, { status: 500 });
+      return jsonNoStore({ error: wordError.message }, 500);
     }
     if (!word) {
-      return NextResponse.json({ error: "Слово не найдено" }, { status: 404 });
+      return jsonNoStore({ error: "Слово не найдено" }, 404);
     }
 
     const myPlayerId = await resolvePlayerId(supabase, room.id, clientId);
@@ -94,14 +96,11 @@ export async function GET(
         hint: word.hint,
         impostorName: impostorPlayer?.name ?? "—",
       };
-      return NextResponse.json(payload);
+      return jsonNoStore(payload);
     }
 
     if (!myPlayerId) {
-      return NextResponse.json(
-        { error: "Вы не в этой комнате" },
-        { status: 403 }
-      );
+      return jsonNoStore({ error: "Вы не в этой комнате" }, 403);
     }
 
     // Зашёл в середине раунда (после его старта) и не шпион → наблюдатель.
@@ -121,7 +120,7 @@ export async function GET(
         roundNumber: room.round_number,
         revealed: false,
       };
-      return NextResponse.json(payload);
+      return jsonNoStore(payload);
     }
 
     if (isImpostor) {
@@ -132,7 +131,7 @@ export async function GET(
         revealed: false,
         hint: word.hint, // только подсказка, без слова
       };
-      return NextResponse.json(payload);
+      return jsonNoStore(payload);
     }
 
     const payload: CardResponse = {
@@ -142,9 +141,9 @@ export async function GET(
       revealed: false,
       word: word.word,
     };
-    return NextResponse.json(payload);
+    return jsonNoStore(payload);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Неизвестная ошибка";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonNoStore({ error: message }, 500);
   }
 }

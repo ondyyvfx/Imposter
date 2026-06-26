@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getClientId, getStoredName, setStoredName } from "@/lib/identity";
 import { getBrowserClient } from "@/lib/supabaseBrowser";
 import { catMeta } from "@/lib/categories";
@@ -233,8 +234,21 @@ export default function RoomClient({ code }: { code: string }) {
 
   // поллинг как надёжный фолбэк (работает даже без realtime)
   useEffect(() => {
-    const id = setInterval(fetchState, 2500);
+    const id = setInterval(fetchState, 2000);
     return () => clearInterval(id);
+  }, [fetchState]);
+
+  // мгновенное обновление при возврате на вкладку / окно
+  useEffect(() => {
+    const onWake = () => {
+      if (document.visibilityState === "visible") fetchState();
+    };
+    window.addEventListener("focus", onWake);
+    document.addEventListener("visibilitychange", onWake);
+    return () => {
+      window.removeEventListener("focus", onWake);
+      document.removeEventListener("visibilitychange", onWake);
+    };
   }, [fetchState]);
 
   // realtime для мгновенных обновлений (если заданы NEXT_PUBLIC ключи)
@@ -243,32 +257,44 @@ export default function RoomClient({ code }: { code: string }) {
     const roomId = state?.room.id;
     if (!supa || !roomId) return;
 
-    const channel = supa
-      .channel(`room-${roomId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "rooms",
-          filter: `id=eq.${roomId}`,
-        },
-        () => fetchState()
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "players",
-          filter: `room_id=eq.${roomId}`,
-        },
-        () => fetchState()
-      )
-      .subscribe();
+    let channel: ReturnType<SupabaseClient["channel"]> | null = null;
+    try {
+      channel = supa
+        .channel(`room-${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rooms",
+            filter: `id=eq.${roomId}`,
+          },
+          () => fetchState()
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "players",
+            filter: `room_id=eq.${roomId}`,
+          },
+          () => fetchState()
+        )
+        .subscribe((status) => {
+          // как только подписка готова — догоняем актуальное состояние
+          if (status === "SUBSCRIBED") fetchState();
+        });
+    } catch {
+      return;
+    }
 
     return () => {
-      supa.removeChannel(channel);
+      try {
+        if (channel) supa.removeChannel(channel);
+      } catch {
+        /* ignore */
+      }
     };
   }, [state?.room.id, fetchState]);
 
@@ -515,9 +541,16 @@ export default function RoomClient({ code }: { code: string }) {
           <div className="mt-5">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-300">Игроки</h2>
-              <span className="text-sm text-slate-500">
-                {state.players.length}
-              </span>
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <span>{state.players.length}</span>
+                <button
+                  onClick={() => fetchState()}
+                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-300 transition hover:bg-white/10"
+                  title="Обновить список"
+                >
+                  ↻ Обновить
+                </button>
+              </div>
             </div>
             <ul className="space-y-2">
               {state.players.map((p: PlayerPublic) => (

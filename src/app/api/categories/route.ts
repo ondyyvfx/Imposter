@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
+import { jsonNoStore } from "@/lib/apiResponse";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
 // Желаемый порядок категорий в интерфейсе.
@@ -13,7 +15,7 @@ export async function GET() {
     const { data, error } = await supabase.from("words").select("category");
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonNoStore({ error: error.message }, 500);
     }
 
     const set = new Set<string>((data ?? []).map((r) => r.category));
@@ -26,9 +28,9 @@ export async function GET() {
       return ia - ib;
     });
 
-    return NextResponse.json({ categories });
+    return jsonNoStore({ categories });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Неизвестная ошибка";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonNoStore({ error: message }, 500);
   }
 }
