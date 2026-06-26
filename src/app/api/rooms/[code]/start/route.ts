@@ -67,6 +67,9 @@ export async function POST(
     // Случайный шпион.
     const impostor = players[Math.floor(Math.random() * players.length)];
 
+    // Случайный игрок, который ходит первым (может быть кем угодно, в т.ч. шпионом).
+    const starter = players[Math.floor(Math.random() * players.length)];
+
     // Слова выбранной области.
     let wordsQuery = supabase.from("words").select("id");
     if (category !== "all") {
@@ -108,6 +111,7 @@ export async function POST(
       round_number: nextRound,
       word_id: chosen.id,
       impostor_player_id: impostor.id,
+      starter_player_id: starter.id,
     });
 
     if (roundError) {

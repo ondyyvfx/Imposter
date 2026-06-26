@@ -33,6 +33,8 @@ export interface CardResponse {
   category: string | null;
   roundNumber: number;
   revealed: boolean;
+  // Кто ходит первым в этом раунде (виден всем — это публичная информация):
+  starterName?: string;
   // Только для команды (crew) или когда раунд раскрыт:
   word?: string;
   // Только для шпиона (impostor) или когда раунд раскрыт:

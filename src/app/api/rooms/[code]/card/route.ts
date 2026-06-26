@@ -49,7 +49,7 @@ export async function GET(
 
     const { data: round, error: roundError } = await supabase
       .from("rounds")
-      .select("word_id, impostor_player_id, created_at")
+      .select("word_id, impostor_player_id, starter_player_id, created_at")
       .eq("room_id", room.id)
       .eq("round_number", room.round_number)
       .maybeSingle();
@@ -74,6 +74,17 @@ export async function GET(
       return jsonNoStore({ error: "Слово не найдено" }, 404);
     }
 
+    // Имя того, кто ходит первым (публично — одинаково для всех).
+    let starterName: string | undefined;
+    if (round.starter_player_id) {
+      const { data: starter } = await supabase
+        .from("players")
+        .select("name")
+        .eq("id", round.starter_player_id)
+        .maybeSingle();
+      starterName = starter?.name ?? undefined;
+    }
+
     const myPlayerId = await resolvePlayerId(supabase, room.id, clientId);
     const isImpostor =
       !!myPlayerId && round.impostor_player_id === myPlayerId;
@@ -95,6 +106,7 @@ export async function GET(
         word: word.word,
         hint: word.hint,
         impostorName: impostorPlayer?.name ?? "—",
+        starterName,
       };
       return jsonNoStore(payload);
     }
@@ -119,6 +131,7 @@ export async function GET(
         category: word.category,
         roundNumber: room.round_number,
         revealed: false,
+        starterName,
       };
       return jsonNoStore(payload);
     }
@@ -130,6 +143,7 @@ export async function GET(
         roundNumber: room.round_number,
         revealed: false,
         hint: word.hint, // только подсказка, без слова
+        starterName,
       };
       return jsonNoStore(payload);
     }
@@ -140,6 +154,7 @@ export async function GET(
       roundNumber: room.round_number,
       revealed: false,
       word: word.word,
+      starterName,
     };
     return jsonNoStore(payload);
   } catch (e) {

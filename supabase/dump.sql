@@ -66,6 +66,7 @@ create table public.rounds (
   round_number         integer not null,
   word_id              uuid not null references public.words(id),
   impostor_player_id   uuid not null references public.players(id),
+  starter_player_id    uuid references public.players(id),   -- кто ходит первым
   created_at           timestamptz not null default now(),
   unique (room_id, round_number)
 );

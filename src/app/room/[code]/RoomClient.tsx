@@ -627,6 +627,17 @@ export default function RoomClient({ code }: { code: string }) {
             )}
           </div>
 
+          {card?.starterName && (
+            <div className="mt-4 animate-pop-in rounded-2xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-3 text-center">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-indigo-300/80">
+                Первым ходит
+              </div>
+              <div className="mt-0.5 text-lg font-bold">
+                🎤 {card.starterName}
+              </div>
+            </div>
+          )}
+
           <div className="mt-8 flex flex-1 flex-col items-center justify-center">
             {!card ? (
               <div className="h-80 w-full max-w-[20rem] animate-pulse rounded-3xl border border-white/10 bg-white/5 sm:h-96" />
