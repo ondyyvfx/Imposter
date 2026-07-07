@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b1020",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -21,12 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className="min-h-screen bg-slate-950 font-sans text-slate-100 antialiased">
-        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -left-40 h-[28rem] w-[28rem] rounded-full bg-indigo-600/25 blur-[120px]" />
-          <div className="absolute top-1/3 -right-40 h-[26rem] w-[26rem] rounded-full bg-fuchsia-600/20 blur-[120px]" />
-          <div className="absolute -bottom-40 left-1/4 h-[26rem] w-[26rem] rounded-full bg-cyan-500/15 blur-[120px]" />
-        </div>
+      <body className="min-h-screen bg-bg font-sans text-fg antialiased">
         {children}
       </body>
     </html>
