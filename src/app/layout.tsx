@@ -22,6 +22,13 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className="min-h-screen bg-bg font-sans text-fg antialiased">
+        {/* Применяем сохранённую тему ДО отрисовки контента — без мигания (FOUC). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('imposter_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();",
+          }}
+        />
         {children}
       </body>
     </html>

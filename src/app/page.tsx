@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getClientId, getStoredName, setStoredName } from "@/lib/identity";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 type Tab = "create" | "join";
 
@@ -80,6 +81,10 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
+      <div className="fixed right-4 top-4 z-50">
+        <ThemeSwitcher />
+      </div>
+
       <div className="mb-9 animate-fade-in">
         <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-border/10 bg-surface text-2xl">
           🕵️

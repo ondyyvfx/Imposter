@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getClientId, getStoredName, setStoredName } from "@/lib/identity";
 import { getBrowserClient } from "@/lib/supabaseBrowser";
 import { catMeta } from "@/lib/categories";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 import type {
   CardResponse,
   GameMode,
@@ -659,12 +660,15 @@ export default function RoomClient({ code }: { code: string }) {
         >
           ← Выйти
         </button>
-        <button
-          onClick={copyCode}
-          className="rounded-full border border-border/10 bg-surface px-4 py-1.5 text-sm font-bold tracking-[0.25em] transition hover:bg-surface-2"
-        >
-          {copied ? "Скопировано ✓" : code}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher />
+          <button
+            onClick={copyCode}
+            className="rounded-full border border-border/10 bg-surface px-4 py-1.5 text-sm font-bold tracking-[0.25em] transition hover:bg-surface-2"
+          >
+            {copied ? "Скопировано ✓" : code}
+          </button>
+        </div>
       </div>
 
       {/* НЕ участник: форма входа */}
@@ -675,7 +679,7 @@ export default function RoomClient({ code }: { code: string }) {
             {code}
           </div>
           {state.room.status !== "lobby" && (
-            <p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-center text-xs text-amber-300">
+            <p className="mt-3 rounded-xl border border-border/10 bg-surface-2 px-3 py-2 text-center text-xs text-muted">
               Игра уже идёт — вы сыграете со следующего раунда.
             </p>
           )}
@@ -865,8 +869,8 @@ export default function RoomClient({ code }: { code: string }) {
           </div>
 
           {card?.revealed && (
-            <div className="mt-6 animate-pop-in rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-center">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-amber-300">
+            <div className="mt-6 animate-pop-in rounded-2xl border border-border/10 bg-surface p-4 text-center">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-accent">
                 Результат раунда
               </div>
               <div className="mt-1 text-lg">
